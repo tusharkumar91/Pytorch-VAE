@@ -9,6 +9,7 @@ and visualizations.
 
 # Quickstart
 * Create a new conda environment with python 3.8 then run below commands
+* ```git clone https://github.com/tusharkumar91/Pytorch-VAE.git```
 * ```cd Pytorch-VAE```
 * ``` pip install -r requirements.txt```
 * ```python -m tools.train_vae.py```
