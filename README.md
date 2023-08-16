@@ -47,4 +47,15 @@ During inference the following output will be saved
 * Interpolation between two randomly sampled points in ```task_name/output_train_dir/interp``` directory
 
 
+## Sample Output
+Latent Visualization
 
+![latent_epoch_1](https://github.com/tusharkumar91/Pytorch-VAE/assets/462771/e0b3f001-26d8-42bb-8b4b-15606c90fc42)
+
+Manifold
+
+![manifold](https://github.com/tusharkumar91/Pytorch-VAE/assets/462771/99322dd6-3775-4d7a-9d98-c23ec922921b)
+
+Reconstruction Images(in white, original in black)
+
+![reconstruction](https://github.com/tusharkumar91/Pytorch-VAE/assets/462771/472433c0-aeab-4ace-aca0-753d9a5d8b70)
