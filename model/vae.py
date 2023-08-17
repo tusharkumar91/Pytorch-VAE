@@ -128,7 +128,7 @@ class VAE(nn.Module):
     
     def sample(self, num_images=1, z=None):
         if z is None:
-            z = torch.randn((num_images, self.enc_fc_layers[-1]))
+            z = torch.randn((num_images, self.latent_dim))
         assert z.size(0) == num_images
         out = self.generate(z)
         return out
