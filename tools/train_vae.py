@@ -16,7 +16,8 @@ from tools.inference import visualize_latent_space
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def train_for_one_epoch(epoch_idx, model, mnist_loader,optimizer, crtierion, config):
+
+def train_for_one_epoch(epoch_idx, model, mnist_loader, optimizer, crtierion, config):
     r"""
     Method to run the training for one epoch.
     :param epoch_idx: iteration number of current epoch
@@ -31,10 +32,11 @@ def train_for_one_epoch(epoch_idx, model, mnist_loader,optimizer, crtierion, con
     kl_losses = []
     losses = []
     # We ignore the label for VAE
-    for im, _ in tqdm(mnist_loader):
+    for im, label in tqdm(mnist_loader):
         im = im.float().to(device)
+        label = label.long().to(device)
         optimizer.zero_grad()
-        output = model(im)
+        output = model(im, label)
         mean = output['mean']
         std, log_variance = None, None
         if config['model_params']['log_variance']:
@@ -44,25 +46,25 @@ def train_for_one_epoch(epoch_idx, model, mnist_loader,optimizer, crtierion, con
         generated_im = output['image']
         if config['train_params']['save_training_image']:
             cv2.imwrite('input.jpeg', (255 * (im.detach() + 1) / 2).cpu().numpy()[0, 0])
-            cv2.imwrite('output.jpeg', (255*(generated_im.detach()+1)/2).cpu().numpy()[0,0])
+            cv2.imwrite('output.jpeg', (255 * (generated_im.detach() + 1) / 2).cpu().numpy()[0, 0])
         
         if config['model_params']['log_variance']:
-            kl_loss = torch.mean(0.5 * torch.sum(torch.exp(log_variance) + mean**2 - 1 - log_variance, dim=-1))
+            kl_loss = torch.mean(0.5 * torch.sum(torch.exp(log_variance) + mean ** 2 - 1 - log_variance, dim=-1))
         else:
-            kl_loss = torch.mean(0.5 * torch.sum(std**2 + mean ** 2 - 1 - torch.log(std**2), dim=-1))
+            kl_loss = torch.mean(0.5 * torch.sum(std ** 2 + mean ** 2 - 1 - torch.log(std ** 2), dim=-1))
         recon_loss = crtierion(generated_im, im)
-        loss = recon_loss + config['train_params']['kl_weight']*kl_loss
+        loss = recon_loss + config['train_params']['kl_weight'] * kl_loss
         recon_losses.append(recon_loss.item())
         losses.append(loss.item())
         kl_losses.append(kl_loss.item())
         loss.backward()
         optimizer.step()
-    print('Finished epoch: {} | Recon Loss : {:.4f} | KL Loss : {:.4f}'.format(epoch_idx+1,
-                                                                    np.mean(recon_losses),
-                                                                    np.mean(kl_losses)))
+    print('Finished epoch: {} | Recon Loss : {:.4f} | KL Loss : {:.4f}'.format(epoch_idx + 1,
+                                                                               np.mean(recon_losses),
+                                                                               np.mean(kl_losses)))
     return np.mean(losses)
 
-    
+
 def train(args):
     ######## Read the config file #######
     with open(args.config_path, 'r') as file:
@@ -74,7 +76,7 @@ def train(args):
     #######################################
     
     ######## Set the desired seed value #######
-    seed=config['train_params']['seed']
+    seed = config['train_params']['seed']
     torch.manual_seed(seed)
     np.random.seed(seed)
     random.seed(seed)
@@ -87,13 +89,14 @@ def train(args):
     mnist = MnistDataset('train', config['train_params']['train_path'])
     mnist_test = MnistDataset('test', config['train_params']['test_path'])
     mnist_loader = DataLoader(mnist, batch_size=config['train_params']['batch_size'], shuffle=True, num_workers=0)
-    mnist_test_loader = DataLoader(mnist_test, batch_size=config['train_params']['batch_size'], shuffle=False, num_workers=0)
+    mnist_test_loader = DataLoader(mnist_test, batch_size=config['train_params']['batch_size'], shuffle=False,
+                                   num_workers=0)
     num_epochs = config['train_params']['epochs']
     optimizer = Adam(model.parameters(), lr=config['train_params']['lr'])
     scheduler = ReduceLROnPlateau(optimizer, factor=0.5, patience=1, verbose=True)
     criterion = {
-        'l1':torch.nn.L1Loss(),
-        'l2':torch.nn.MSELoss()
+        'l1': torch.nn.L1Loss(),
+        'l2': torch.nn.MSELoss()
     }.get(config['train_params']['crit'])
     
     # Deleting old outputs for this task
@@ -102,7 +105,7 @@ def train(args):
         shutil.rmtree(config['train_params']['task_name'])
     os.mkdir(config['train_params']['task_name'])
     os.mkdir(os.path.join(config['train_params']['task_name'], config['train_params']['output_train_dir']))
-
+    
     best_loss = np.inf
     latent_im_path = os.path.join(config['train_params']['task_name'],
                                   config['train_params']['output_train_dir'],
@@ -117,7 +120,8 @@ def train(args):
             model.eval()
             with torch.no_grad():
                 print('Generating latent plot on test set')
-                visualize_latent_space(config, model, mnist_test_loader, save_fig_path=latent_im_path.format(epoch_idx+1))
+                visualize_latent_space(config, model, mnist_test_loader,
+                                       save_fig_path=latent_im_path.format(epoch_idx + 1))
             model.train()
         scheduler.step(mean_loss)
         # Simply update checkpoint if found better version
@@ -128,10 +132,11 @@ def train(args):
             best_loss = mean_loss
         else:
             print('No Loss Improvement')
-        
-    
+
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Arguments for vae training')
-    parser.add_argument('--config', dest='config_path', default='config/vae_kl_latent4.yaml', type=str)
+    parser = argparse.ArgumentParser(description='Arguments for conditional vae training')
+    parser.add_argument('--config', dest='config_path',
+                        default='config/vae_kl_latent4_enc_channel_dec_fc_condition.yaml', type=str)
     args = parser.parse_args()
     train(args)

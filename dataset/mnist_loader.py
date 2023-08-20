@@ -35,17 +35,16 @@ class MnistDataset(Dataset):
     def __getitem__(self, index):
         im = cv2.imread(self.images[index], 0)
         label = self.labels[index]
-        
         # Convert to 0 to 255 into -1 to 1
         im = 2*(im / 255) - 1
         # Convert H,W,C into 1,C,H,W
         im_tensor = torch.from_numpy(im)[None,:]
-        return im_tensor, torch.as_tensor(label).unsqueeze(0)
+        return im_tensor, torch.as_tensor(label)
         
 
 
 if __name__ == '__main__':
-    mnist = MnistDataset('test', '../data/test/images')
+    mnist = MnistDataset('test', 'data/test/images')
     mnist_loader = DataLoader(mnist, batch_size=16, shuffle=True, num_workers=0)
     for im, label in mnist_loader:
         print('Image dimension', im.shape)

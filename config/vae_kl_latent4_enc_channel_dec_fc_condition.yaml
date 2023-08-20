@@ -18,19 +18,19 @@ model_params:
   transpose_activation_fn: 'tanh'
   log_variance: True
   latent_dim: 4
-  concat_channel: False
-  decoder_fc_condition: False
+  concat_channel: True
+  decoder_fc_condition: True
   num_classes: 10
-  conditional: False
+  conditional: True
 
 train_params:
-  task_name: 'vae_kl_latent4'
+  task_name: 'vae_kl_latent4_enc_channel_dec_fc_condition'
   batch_size: 64
   epochs: 10
   kl_weight: 0.00001
   lr: 0.005
   crit: 'l2'
-  ckpt_name: 'best_vae_kl_latent4.pth'
+  ckpt_name: 'best_vae_kl_latent4_enc_channel_dec_fc_condition.pth'
   seed: 111
   save_training_image: True
 

@@ -18,11 +18,15 @@ model_params:
   transpose_activation_fn: 'tanh'
   log_variance: True
   latent_dim: 2
+  concat_channel: False
+  decoder_fc_condition: False
+  num_classes: 10
+  conditional: False
 
 train_params:
   task_name: 'vae_kl'
   batch_size: 64
-  epochs: 20
+  epochs: 10
   kl_weight: 0.00001
   lr: 0.005
   crit: 'l2'
@@ -30,7 +34,7 @@ train_params:
   seed: 111
   save_training_image: True
 
-  train_path: '../data/train/images'
-  test_path: '../data/test/images'
+  train_path: 'data/train/images'
+  test_path: 'data/test/images'
   output_train_dir: 'output'
   save_latent_plot: True
